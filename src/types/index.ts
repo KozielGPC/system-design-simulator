@@ -6,7 +6,34 @@ export type ComponentCategory =
   | 'compute'
   | 'data'
   | 'messaging'
-  | 'storage';
+  | 'storage'
+  | 'security';
+
+// --- Edge types ---
+export type EdgeProtocol = 'HTTP' | 'gRPC' | 'WebSocket' | 'TCP' | 'AMQP';
+
+export interface EdgeData {
+  label: string;
+  protocol: EdgeProtocol;
+  isAsync: boolean;
+  [key: string]: unknown;
+}
+
+// --- LB / Cache strategy types ---
+export type LBAlgorithm =
+  | 'round-robin'
+  | 'least-connections'
+  | 'consistent-hashing'
+  | 'weighted'
+  | 'ip-hash';
+
+export type CacheEvictionPolicy = 'LRU' | 'LFU' | 'TTL';
+export type CachePattern =
+  | 'cache-aside'
+  | 'write-through'
+  | 'write-back'
+  | 'read-through';
+export type CacheInvalidation = 'TTL' | 'event-driven' | 'manual';
 
 export interface ComponentTypeConfig {
   throughput: number;
@@ -16,6 +43,11 @@ export interface ComponentTypeConfig {
   cacheHitRate?: number;
   replicationFactor?: number;
   partitions?: number;
+  lbAlgorithm?: LBAlgorithm;
+  cacheEvictionPolicy?: CacheEvictionPolicy;
+  cachePattern?: CachePattern;
+  cacheInvalidation?: CacheInvalidation;
+  cacheTtlSeconds?: number;
 }
 
 export interface ComponentType {
@@ -45,7 +77,54 @@ export interface SystemNodeData {
 }
 
 export type SystemNode = Node<SystemNodeData, 'system'>;
-export type SystemEdge = Edge;
+export type SystemEdge = Edge<EdgeData>;
+
+// --- Interview timer ---
+export interface InterviewPhase {
+  id: string;
+  name: string;
+  startMinute: number;
+  endMinute: number;
+  color: string;
+  hints: string[];
+}
+
+// --- Envelope estimation ---
+export interface EnvelopeEstimation {
+  dau: number;
+  readWriteRatio: number;
+  avgRequestsPerUser: number;
+  peakMultiplier: number;
+  recordSizeBytes: number;
+  newRecordsPerDay: number;
+  retentionYears: number;
+  avgReadPayloadBytes: number;
+  avgWritePayloadBytes: number;
+}
+
+// --- Requirements ---
+export interface RequirementItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
+export interface NonFunctionalRequirement {
+  id: string;
+  category: string;
+  label: string;
+  target: string;
+  checked: boolean;
+}
+
+// --- Annotations ---
+export interface AnnotationNodeData {
+  text: string;
+  color: string;
+  [key: string]: unknown;
+}
+
+export type AnnotationNode = Node<AnnotationNodeData, 'annotation'>;
 
 export interface NodeSimResult {
   nodeId: string;

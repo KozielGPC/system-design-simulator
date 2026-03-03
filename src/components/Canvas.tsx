@@ -6,25 +6,40 @@ import {
   MiniMap,
   Panel,
   BackgroundVariant,
-  type ReactFlowInstance,
+  type Node,
+  type Edge,
+  type OnNodesChange,
+  type OnEdgesChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useStore } from '../store/useStore';
 import { SystemNode } from './nodes/SystemNode';
-import type { SystemNode as SystemNodeType } from '../types';
+import { AnnotationNode } from './nodes/AnnotationNode';
+import { LabeledEdge } from './edges/LabeledEdge';
 
-const nodeTypes = { system: SystemNode };
+const nodeTypes = { system: SystemNode, annotation: AnnotationNode };
+const edgeTypes = { labeled: LabeledEdge };
 
 export function Canvas() {
-  const reactFlowInstance = useRef<ReactFlowInstance<SystemNodeType> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reactFlowInstance = useRef<any>(null);
   const {
     nodes,
     edges,
+    annotations,
     onNodesChange,
     onEdgesChange,
     onConnect,
     addNode,
+    selectEdge,
+    selectNode,
+    addAnnotation,
   } = useStore();
+
+  const allNodes = useMemo(
+    () => [...nodes, ...annotations] as Node[],
+    [nodes, annotations]
+  );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -49,13 +64,38 @@ export function Canvas() {
     [addNode]
   );
 
-  const onInit = useCallback((instance: ReactFlowInstance<SystemNodeType>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onInit = useCallback((instance: any) => {
     reactFlowInstance.current = instance;
   }, []);
 
+  const handleEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: { id: string }) => {
+      selectEdge(edge.id);
+    },
+    [selectEdge]
+  );
+
+  const handlePaneClick = useCallback(() => {
+    selectNode(null);
+    selectEdge(null);
+  }, [selectNode, selectEdge]);
+
+  const handleDoubleClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (!reactFlowInstance.current) return;
+      const position = reactFlowInstance.current.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      addAnnotation(position);
+    },
+    [addAnnotation]
+  );
+
   const defaultEdgeOptions = useMemo(
     () => ({
-      type: 'smoothstep',
+      type: 'labeled',
       style: { stroke: '#94a3b8', strokeWidth: 2 },
     }),
     []
@@ -64,15 +104,19 @@ export function Canvas() {
   return (
     <div className="relative h-full w-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={allNodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onNodesChange={onNodesChange as OnNodesChange<Node>}
+        onEdgesChange={onEdgesChange as OnEdgesChange<Edge>}
         onConnect={onConnect}
         onInit={onInit}
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onEdgeClick={handleEdgeClick}
+        onPaneClick={handlePaneClick}
+        onDoubleClick={handleDoubleClick}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView={false}
         snapToGrid
@@ -98,7 +142,7 @@ export function Canvas() {
           className="!rounded-xl !border !border-border-light !bg-white/90 !shadow-panel"
           maskColor="rgba(250, 250, 248, 0.7)"
         />
-        {nodes.length === 0 && (
+        {nodes.length === 0 && annotations.length === 0 && (
           <Panel position="top-center">
             <div className="pointer-events-none mt-[25vh] flex flex-col items-center gap-4 rounded-2xl border border-border-light bg-white/90 px-10 py-8 text-center shadow-panel backdrop-blur-sm">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">

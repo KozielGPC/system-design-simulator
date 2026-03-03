@@ -110,11 +110,35 @@ export function runSimulation(
     const hasCacheHitRate =
       config.cacheHitRate !== undefined && config.cacheHitRate > 0;
 
-    for (const childId of children) {
+    for (let ci = 0; ci < children.length; ci++) {
+      const childId = children[ci];
       let rpsToChild: number;
 
       if (isLoadBalancer && children.length > 0) {
-        rpsToChild = passedRps / children.length;
+        const algo = config.lbAlgorithm ?? 'round-robin';
+        if (algo === 'least-connections') {
+          // Weighted by inverse utilization of children
+          const childNodes = children.map((cid) => nodes.find((n) => n.id === cid)).filter(Boolean);
+          const weights = childNodes.map((cn) => {
+            if (!cn) return 1;
+            const cap = cn.data.config.throughput * Math.max(1, cn.data.config.instances);
+            return cap > 0 ? cap : 1;
+          });
+          const totalWeight = weights.reduce((a, b) => a + b, 0);
+          rpsToChild = passedRps * (weights[ci] / totalWeight);
+        } else if (algo === 'weighted') {
+          // Proportional to child throughput × instances
+          const childNodes = children.map((cid) => nodes.find((n) => n.id === cid)).filter(Boolean);
+          const weights = childNodes.map((cn) => {
+            if (!cn) return 1;
+            return cn.data.config.throughput * Math.max(1, cn.data.config.instances);
+          });
+          const totalWeight = weights.reduce((a, b) => a + b, 0);
+          rpsToChild = totalWeight > 0 ? passedRps * (weights[ci] / totalWeight) : passedRps / children.length;
+        } else {
+          // round-robin, ip-hash, consistent-hashing → even split
+          rpsToChild = passedRps / children.length;
+        }
       } else if (hasCacheHitRate) {
         rpsToChild = passedRps * (1 - (config.cacheHitRate ?? 0));
       } else {

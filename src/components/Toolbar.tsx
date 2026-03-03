@@ -1,6 +1,8 @@
 import * as Icons from 'lucide-react';
 import clsx from 'clsx';
 import { useStore } from '../store/useStore';
+import { InterviewTimer } from './InterviewTimer';
+import { TemplatePicker } from './TemplatePicker';
 
 export function Toolbar() {
   const {
@@ -12,6 +14,12 @@ export function Toolbar() {
     clearCanvas,
     isSimulating,
     simulationResult,
+    toggleCalculator,
+    showCalculator,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
   } = useStore();
 
   const hasNodes = nodes.length > 0;
@@ -32,7 +40,26 @@ export function Toolbar() {
         </div>
       </div>
 
+      <InterviewTimer />
+
       <div className="flex items-center gap-2">
+        <TemplatePicker />
+
+        <button
+          onClick={toggleCalculator}
+          className={clsx(
+            'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors',
+            showCalculator
+              ? 'border-indigo-200 bg-indigo-50 text-indigo-600'
+              : 'border-border-light text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+          )}
+        >
+          <Icons.Calculator size={13} />
+          Estimation
+        </button>
+
+        <div className="mx-1 h-5 w-px bg-border-light" />
+
         <div className="flex items-center gap-1.5 rounded-lg border border-border-light bg-gray-50/50 px-3 py-1.5">
           <Icons.Gauge size={13} className="text-gray-400" />
           <span className="text-[11px] font-medium text-gray-400">
@@ -85,6 +112,33 @@ export function Toolbar() {
         </button>
 
         <div className="mx-1 h-5 w-px bg-border-light" />
+
+        <button
+          onClick={undo}
+          disabled={!canUndo}
+          className={clsx(
+            'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+            canUndo
+              ? 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              : 'cursor-not-allowed text-gray-200'
+          )}
+          title="Undo (Cmd+Z)"
+        >
+          <Icons.Undo2 size={15} />
+        </button>
+        <button
+          onClick={redo}
+          disabled={!canRedo}
+          className={clsx(
+            'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+            canRedo
+              ? 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              : 'cursor-not-allowed text-gray-200'
+          )}
+          title="Redo (Cmd+Shift+Z)"
+        >
+          <Icons.Redo2 size={15} />
+        </button>
 
         <button
           onClick={clearCanvas}

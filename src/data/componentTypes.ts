@@ -7,6 +7,7 @@ export const CATEGORY_LABELS: Record<ComponentCategory, string> = {
   data: 'Data Stores',
   messaging: 'Messaging',
   storage: 'Storage & Search',
+  security: 'Security',
 };
 
 export const CATEGORY_ORDER: ComponentCategory[] = [
@@ -16,6 +17,7 @@ export const CATEGORY_ORDER: ComponentCategory[] = [
   'data',
   'messaging',
   'storage',
+  'security',
 ];
 
 export const COMPONENT_TYPES: ComponentType[] = [
@@ -74,6 +76,10 @@ export const COMPONENT_TYPES: ComponentType[] = [
       instances: 1,
       scalingType: 'horizontal',
       cacheHitRate: 0.9,
+      cacheEvictionPolicy: 'TTL',
+      cachePattern: 'read-through',
+      cacheInvalidation: 'TTL',
+      cacheTtlSeconds: 3600,
     },
   },
   {
@@ -88,6 +94,7 @@ export const COMPONENT_TYPES: ComponentType[] = [
       latency: 1,
       instances: 1,
       scalingType: 'horizontal',
+      lbAlgorithm: 'round-robin',
     },
   },
   {
@@ -173,6 +180,10 @@ export const COMPONENT_TYPES: ComponentType[] = [
       instances: 1,
       scalingType: 'horizontal',
       cacheHitRate: 0.85,
+      cacheEvictionPolicy: 'LRU',
+      cachePattern: 'cache-aside',
+      cacheInvalidation: 'TTL',
+      cacheTtlSeconds: 300,
     },
   },
   {
@@ -300,6 +311,63 @@ export const COMPONENT_TYPES: ComponentType[] = [
     defaultConfig: {
       throughput: 5_000,
       latency: 10,
+      instances: 1,
+      scalingType: 'horizontal',
+    },
+  },
+  // Security
+  {
+    id: 'auth-service',
+    name: 'Auth Service',
+    category: 'security',
+    icon: 'KeyRound',
+    color: '#f97316',
+    description: 'Authentication & authorization (OAuth, JWT)',
+    defaultConfig: {
+      throughput: 10_000,
+      latency: 15,
+      instances: 1,
+      scalingType: 'horizontal',
+    },
+  },
+  {
+    id: 'rate-limiter',
+    name: 'Rate Limiter',
+    category: 'security',
+    icon: 'Timer',
+    color: '#f97316',
+    description: 'Request rate limiting & throttling',
+    defaultConfig: {
+      throughput: 100_000,
+      latency: 1,
+      instances: 1,
+      scalingType: 'horizontal',
+    },
+  },
+  {
+    id: 'waf',
+    name: 'WAF / Firewall',
+    category: 'security',
+    icon: 'ShieldCheck',
+    color: '#f97316',
+    description: 'Web Application Firewall',
+    defaultConfig: {
+      throughput: 50_000,
+      latency: 2,
+      instances: 1,
+      scalingType: 'horizontal',
+    },
+  },
+  {
+    id: 'encryption-service',
+    name: 'Encryption Service',
+    category: 'security',
+    icon: 'Lock',
+    color: '#f97316',
+    description: 'Data encryption & key management',
+    defaultConfig: {
+      throughput: 20_000,
+      latency: 5,
       instances: 1,
       scalingType: 'horizontal',
     },

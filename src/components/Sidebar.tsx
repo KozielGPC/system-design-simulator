@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { COMPONENT_TYPES, CATEGORY_LABELS, CATEGORY_ORDER } from '../data/componentTypes';
 import type { ComponentType } from '../types';
 import { useStore } from '../store/useStore';
+import { RequirementsPanel } from './RequirementsPanel';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyIcon = React.ComponentType<any>;
@@ -45,13 +46,11 @@ function DraggableComponent({ comp }: { comp: ComponentType }) {
   );
 }
 
-export function Sidebar() {
+function ComponentsPanel() {
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(CATEGORY_ORDER)
   );
-  const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
-  const toggleSidebar = useStore((s) => s.toggleSidebar);
 
   const filtered = search
     ? COMPONENT_TYPES.filter(
@@ -76,33 +75,8 @@ export function Sidebar() {
     });
   };
 
-  if (sidebarCollapsed) {
-    return (
-      <div className="flex w-12 flex-col items-center border-r border-border-light bg-white py-3">
-        <button
-          onClick={toggleSidebar}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-        >
-          <Icons.PanelLeftOpen size={16} />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex w-[272px] shrink-0 flex-col border-r border-border-light bg-white">
-      <div className="flex items-center justify-between border-b border-border-light px-4 py-3">
-        <span className="text-[13px] font-semibold text-gray-700">
-          Components
-        </span>
-        <button
-          onClick={toggleSidebar}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-        >
-          <Icons.PanelLeftClose size={14} />
-        </button>
-      </div>
-
+    <>
       <div className="px-3 py-2">
         <div className="relative">
           <Icons.Search
@@ -154,11 +128,70 @@ export function Sidebar() {
       </div>
 
       <div className="border-t border-border-light px-4 py-3">
-        <p className="text-[11px] leading-relaxed text-gray-300">
+        <p className="text-[11px] leading-relaxed text-gray-500">
           Drag components onto the canvas and connect them to design your
           system architecture.
         </p>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
+  const toggleSidebar = useStore((s) => s.toggleSidebar);
+  const sidebarTab = useStore((s) => s.sidebarTab);
+  const setSidebarTab = useStore((s) => s.setSidebarTab);
+
+  if (sidebarCollapsed) {
+    return (
+      <div className="flex w-12 flex-col items-center border-r border-border-light bg-white py-3">
+        <button
+          onClick={toggleSidebar}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        >
+          <Icons.PanelLeftOpen size={16} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-[272px] shrink-0 flex-col border-r border-border-light bg-white">
+      <div className="flex items-center justify-between border-b border-border-light px-4 py-3">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setSidebarTab('components')}
+            className={clsx(
+              'rounded-lg px-2.5 py-1 text-[12px] font-medium transition-colors',
+              sidebarTab === 'components'
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-400 hover:text-gray-600'
+            )}
+          >
+            Components
+          </button>
+          <button
+            onClick={() => setSidebarTab('requirements')}
+            className={clsx(
+              'rounded-lg px-2.5 py-1 text-[12px] font-medium transition-colors',
+              sidebarTab === 'requirements'
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-400 hover:text-gray-600'
+            )}
+          >
+            Requirements
+          </button>
+        </div>
+        <button
+          onClick={toggleSidebar}
+          className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        >
+          <Icons.PanelLeftClose size={14} />
+        </button>
+      </div>
+
+      {sidebarTab === 'components' ? <ComponentsPanel /> : <RequirementsPanel />}
     </div>
   );
 }
